@@ -79,6 +79,26 @@ def load_assets():
 # Load assets
 model, vectorizer, class_names = load_assets()
 
+# 🔍 DEBUG: Check what's actually in the files
+st.sidebar.write("🛠️ DEBUG INFORMATION")
+st.sidebar.write(f"Class names type: {type(class_names)}")
+st.sidebar.write(f"Class names content: {class_names}")
+st.sidebar.write(f"Number of classes: {len(class_names)}")
+
+# Check model properties
+if model is not None:
+    if hasattr(model, 'classes_'):
+        st.sidebar.write(f"Model classes: {model.classes_}")
+        st.sidebar.write(f"Model n_classes: {model.n_classes_}")
+    else:
+        st.sidebar.write("Model has no classes_ attribute")
+
+# Check vectorizer
+if vectorizer is not None and hasattr(vectorizer, 'get_feature_names_out'):
+    st.sidebar.write(f"Vectorizer features: {vectorizer.get_feature_names_out()[:10]}...")
+else:
+    st.sidebar.write("Vectorizer doesn't have get_feature_names_out method")
+
 # Define the text cleaning function
 def clean_text(text):
     if not isinstance(text, str):
@@ -117,9 +137,17 @@ else:
         if user_input.strip():
             with st.spinner('🧠 Analyzing statement...'):
                 cleaned_input = clean_text(user_input)
+                st.sidebar.write(f"Cleaned text: {cleaned_input}")
+                
                 transformed_input = vectorizer.transform([cleaned_input])
+                st.sidebar.write(f"Features shape: {transformed_input.shape}")
+                st.sidebar.write(f"Non-zero features: {transformed_input.nnz}")
+                
                 prediction = model.predict(transformed_input)
                 probabilities = model.predict_proba(transformed_input)[0]
+                
+                st.sidebar.write(f"Raw prediction: {prediction}")
+                st.sidebar.write(f"All probabilities: {probabilities}")
 
             st.success("### Prediction Results")
 

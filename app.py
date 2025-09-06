@@ -149,6 +149,26 @@ else:
                 st.sidebar.write(f"Raw prediction: {prediction}")
                 st.sidebar.write(f"All probabilities: {probabilities}")
 
+            # 🔍 ADD THE NEW DEBUG CODE RIGHT HERE (inside the if block, after with-statement)
+            st.sidebar.write("🔍 PREDICTION DEBUG:")
+            st.sidebar.write(f"Input text: '{user_input}'")
+            st.sidebar.write(f"Cleaned text: '{cleaned_input}'")
+            st.sidebar.write(f"Transformed input shape: {transformed_input.shape}")
+            st.sidebar.write(f"Non-zero features: {transformed_input.nnz}")
+
+            # Check if the transformed input has any features
+            if transformed_input.nnz == 0:
+                st.sidebar.error("❌ NO FEATURES EXTRACTED! The text cleaning might be too aggressive")
+                
+            st.sidebar.write(f"Prediction: {prediction}")
+            st.sidebar.write(f"Probabilities: {probabilities}")
+            st.sidebar.write(f"Max probability: {max(probabilities):.4f}")
+            st.sidebar.write(f"Predicted class index: {np.argmax(probabilities)}")
+
+            # Check if all probabilities are the same
+            if len(set(probabilities)) == 1:
+                st.sidebar.error("❌ ALL PROBABILITIES ARE EQUAL! Model might not be working properly")
+
             st.success("### Prediction Results")
 
             col1, col2 = st.columns([1, 2])
@@ -168,6 +188,7 @@ else:
                 st.code(cleaned_input)
         else:
             st.warning("⚠️ Please enter some text to analyze.")
+        
 
 st.markdown("---")
 st.markdown("""

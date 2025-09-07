@@ -16,11 +16,13 @@ Check out the live application:
 
 This application uses a trained machine learning model to analyze personal statements and classify them into mental health categories:
 
+- **Normal**
 - **Depression**
+- **Suicidal**
 - **Anxiety**
-- **Bipolar Disorder**
-- **PTSD (Post-Traumatic Stress Disorder)**
-- **Healthy**
+- **Bipolar**
+- **Stress**
+- **Personality Disorder**
 
 The app processes text using NLP techniques including tokenization, stopword removal, and lemmatization, then uses a TF-IDF vectorizer and Random Forest classifier for prediction.
 

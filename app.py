@@ -158,9 +158,12 @@ user_input = st.text_area(
     "**Enter a statement:**",
     height=150,
     placeholder="e.g., I've been feeling incredibly restless and worried for the past month, can't sleep properly...",
-    value=st.session_state.user_input,
     key="text_input"
 )
+
+# Update session state with the current input
+if user_input != st.session_state.user_input:
+    st.session_state.user_input = user_input
 
 # Create columns for the buttons
 col1, col2, col3 = st.columns([1, 1, 6])
@@ -196,9 +199,9 @@ if st.session_state.clear_clicked:
     )
 
 if predict_button:
-    if user_input.strip():
+    if st.session_state.user_input.strip():
         with st.spinner('🧠 Analyzing statement...'):
-            cleaned_input = clean_text(user_input)
+            cleaned_input = clean_text(st.session_state.user_input)
             
             if debug_mode:
                 st.sidebar.write(f"Cleaned text: {cleaned_input}")

@@ -150,6 +150,9 @@ st.markdown("This app predicts the mental health category based on a personal st
 if 'user_input' not in st.session_state:
     st.session_state.user_input = ''
 
+if 'clear_clicked' not in st.session_state:
+    st.session_state.clear_clicked = False
+
 # Create a text area with the session state value
 user_input = st.text_area(
     "**Enter a statement:**",
@@ -171,8 +174,26 @@ with col2:
 # Handle clear button click
 if clear_button:
     st.session_state.user_input = ''
+    st.session_state.clear_clicked = True
     # Use st.rerun() to refresh the app and clear the text area
     st.rerun()
+
+# Reset the clear_clicked flag after the rerun
+if st.session_state.clear_clicked:
+    st.session_state.clear_clicked = False
+    # Set focus back to the text area
+    st.markdown(
+        """
+        <script>
+            // Focus on the text area after clear
+            const textarea = window.parent.document.querySelector('textarea');
+            if (textarea) {
+                textarea.focus();
+            }
+        </script>
+        """,
+        unsafe_allow_html=True
+    )
 
 if predict_button:
     if user_input.strip():

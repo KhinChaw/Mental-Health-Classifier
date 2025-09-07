@@ -44,6 +44,7 @@ The app processes text using NLP techniques including tokenization, stopword rem
 
 ## 📁 Project Structure
 
+```
 Mental-Health-Classifier/
 ├── app.py
 ├── requirements.txt
@@ -52,7 +53,8 @@ Mental-Health-Classifier/
 └── models/
 ├── best_deployment_model.joblib
 ├── tfidf_vectorizer.joblib
-└── class_names.joblib
+└── class_names.joblib''
+```
 
 ### Prerequisites
 

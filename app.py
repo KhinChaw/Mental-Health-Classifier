@@ -146,13 +146,33 @@ def clean_text(text):
 st.title("🧠 Mental Health Statement Classifier")
 st.markdown("This app predicts the mental health category based on a personal statement. Enter text below and click **Predict**.")
 
+# Initialize session state for text input if it doesn't exist
+if 'user_input' not in st.session_state:
+    st.session_state.user_input = ''
+
+# Create a text area with the session state value
 user_input = st.text_area(
     "**Enter a statement:**",
     height=150,
-    placeholder="e.g., I've been feeling incredibly restless and worried for the past month, can't sleep properly..."
+    placeholder="e.g., I've been feeling incredibly restless and worried for the past month, can't sleep properly...",
+    value=st.session_state.user_input,
+    key="text_input"
 )
 
-predict_button = st.button("🚀 Predict", type="primary")
+# Create columns for the buttons
+col1, col2, col3 = st.columns([1, 1, 6])
+
+with col1:
+    predict_button = st.button("🚀 Predict", type="primary", use_container_width=True)
+
+with col2:
+    clear_button = st.button("🧹 Clear", use_container_width=True)
+
+# Handle clear button click
+if clear_button:
+    st.session_state.user_input = ''
+    # Use st.rerun() to refresh the app and clear the text area
+    st.rerun()
 
 if predict_button:
     if user_input.strip():
@@ -205,7 +225,7 @@ st.markdown("""
 1. You type a personal statement into the box.
 2. The app cleans and processes the text.
 3. It converts the text into numerical features using TF-IDF.
-4. The trained Random Forest model makes a prediction.
+4. The trained Logistic Regression model makes a prediction.
 5. Results are displayed along with the model's confidence.
 
 **🔒 Privacy Note:** This app runs entirely in your browser. No data is sent to any server.

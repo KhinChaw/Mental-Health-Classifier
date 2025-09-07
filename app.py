@@ -34,13 +34,9 @@ def load_assets():
         os.makedirs("models", exist_ok=True)
         
         # Google Drive file IDs (replace these with your actual file IDs)
-        # To get the file ID from your Google Drive path:
-        # /content/drive/MyDrive/Mental-Health-Classification/models/
-        
-        # You need to get the shareable links for these files first:
-        model_file_id = "1hpM7nicGeetKdTRO564pwm1-yP6xvsTw"
-        vectorizer_file_id = "1r0KNQRZBNWEYhauJB-rNKiO_W-nnVWux"
-        class_names_file_id = "1hzUflkNWjiOzSH65kysz3uxBB0uhsbpW"
+        model_file_id = "1Th6xAsP1MVXJdpZPOzpnQvR10gk_yK3R"
+        vectorizer_file_id = "11M5SlKuEw7eOflL2pXxceZowmgH6uD5C"
+        class_names_file_id = "10-sCmZrzSeASQ1KS4MQkVs_rmgfrwiTz"
         
         # Download files from Google Drive
         model_url = f"https://drive.google.com/uc?id={model_file_id}"
@@ -48,56 +44,90 @@ def load_assets():
         class_names_url = f"https://drive.google.com/uc?id={class_names_file_id}"
         
         # Download files if they don't exist locally
-        model_path = "models/mental_health_predictor.joblib"
-        vectorizer_path = "models/text_vectorizer.joblib"
+        model_path = "models/best_deployment_model.joblib"
+        vectorizer_path = "models/tfidf_vectorizer.joblib"
         class_names_path = "models/class_names.joblib"
         
         if not os.path.exists(model_path):
             gdown.download(model_url, model_path, quiet=False)
-            st.success("✅ Model file downloaded successfully")
         if not os.path.exists(vectorizer_path):
             gdown.download(vectorizer_url, vectorizer_path, quiet=False)
-            st.success("✅ Vectorizer file downloaded successfully")
         if not os.path.exists(class_names_path):
             gdown.download(class_names_url, class_names_path, quiet=False)
-            st.success("✅ Class names file downloaded successfully")
         
         # Load the downloaded files
         model = joblib.load(model_path)
         vectorizer = joblib.load(vectorizer_path)
         class_names = joblib.load(class_names_path)
         
-        st.success("✅ All model files loaded successfully!")
         return model, vectorizer, class_names
         
     except Exception as e:
         st.error(f"❌ Error loading model files: {e}")
-        import traceback
-        st.error(traceback.format_exc())
         return None, None, None
 
 # Load assets
 model, vectorizer, class_names = load_assets()
 
-# 🔍 DEBUG: Check what's actually in the files
-st.sidebar.write("🛠️ DEBUG INFORMATION")
-st.sidebar.write(f"Class names type: {type(class_names)}")
-st.sidebar.write(f"Class names content: {class_names}")
-st.sidebar.write(f"Number of classes: {len(class_names)}")
+# If model files couldn't be loaded, create demo assets
+if model is None or vectorizer is None or class_names is None:
+    st.error("❌ Model files could not be loaded. Running in demo mode with sample data.")
+    
+    # Create simple demo assets
+    class_names = np.array(['Depression', 'Anxiety', 'Bipolar', 'PTSD', 'Healthy'])
+    
+    # Create a dummy vectorizer and model for demo
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    vectorizer = TfidfVectorizer(max_features=100)
+    
+    # Fit with some dummy data
+    dummy_texts = [
+        "feel sad depressed hopeless",
+        "anxious worry panic fear",
+        "mood swings high low",
+        "trauma flashbacks nightmare",
+        "good fine okay well"
+    ]
+    vectorizer.fit(dummy_texts)
+    
+    # Create a dummy model that returns random probabilities
+    class DemoModel:
+        def predict(self, X):
+            return np.random.choice(class_names, size=X.shape[0])
+        
+        def predict_proba(self, X):
+            # Return random probabilities that sum to 1
+            probs = np.random.rand(X.shape[0], len(class_names))
+            return probs / probs.sum(axis=1, keepdims=1)
+    
+    model = DemoModel()
+    
+    st.info("ℹ️ Running in demo mode. To use the real model, please check your Google Drive file IDs.")
 
-# Check model properties
-if model is not None:
+# Debug toggle
+debug_mode = st.sidebar.checkbox("Show debug information", value=False)
+
+if debug_mode:
+    st.sidebar.write("🛠️ DEBUG INFORMATION")
+    st.sidebar.write(f"Class names type: {type(class_names)}")
+    st.sidebar.write(f"Class names content: {class_names}")
+    st.sidebar.write(f"Number of classes: {len(class_names)}")
+
+    # Check model properties
     if hasattr(model, 'classes_'):
         st.sidebar.write(f"Model classes: {model.classes_}")
-        st.sidebar.write(f"Model n_classes: {model.n_classes_}")
+        if hasattr(model, 'n_classes_'):
+            st.sidebar.write(f"Model n_classes: {model.n_classes_}")
     else:
         st.sidebar.write("Model has no classes_ attribute")
 
-# Check vectorizer
-if vectorizer is not None and hasattr(vectorizer, 'get_feature_names_out'):
-    st.sidebar.write(f"Vectorizer features: {vectorizer.get_feature_names_out()[:10]}...")
-else:
-    st.sidebar.write("Vectorizer doesn't have get_feature_names_out method")
+    # Check vectorizer
+    if hasattr(vectorizer, 'get_feature_names_out'):
+        try:
+            features = vectorizer.get_feature_names_out()
+            st.sidebar.write(f"Vectorizer features: {features[:10]}...")
+        except:
+            st.sidebar.write("Could not get vectorizer features")
 
 # Define the text cleaning function
 def clean_text(text):
@@ -116,78 +146,57 @@ def clean_text(text):
 st.title("🧠 Mental Health Statement Classifier")
 st.markdown("This app predicts the mental health category based on a personal statement. Enter text below and click **Predict**.")
 
-if model is None:
-    st.error("❌ Model files could not be loaded. Please check the Google Drive links.")
-    st.info("ℹ️ To get the file IDs:")
-    st.write("1. Go to your Google Drive")
-    st.write("2. Right-click on each model file → 'Get link'")
-    st.write("3. Set sharing to 'Anyone with the link can view'")
-    st.write("4. Copy the file ID from the URL (the part after '/d/' and before '/view')")
-    st.write("5. Replace the placeholders in the code with your actual file IDs")
-else:
-    user_input = st.text_area(
-        "**Enter a statement:**",
-        height=150,
-        placeholder="e.g., I've been feeling incredibly restless and worried for the past month, can't sleep properly..."
-    )
+user_input = st.text_area(
+    "**Enter a statement:**",
+    height=150,
+    placeholder="e.g., I've been feeling incredibly restless and worried for the past month, can't sleep properly..."
+)
 
-    predict_button = st.button("🚀 Predict", type="primary")
+predict_button = st.button("🚀 Predict", type="primary")
 
-    if predict_button:
-        if user_input.strip():
-            with st.spinner('🧠 Analyzing statement...'):
-                cleaned_input = clean_text(user_input)
+if predict_button:
+    if user_input.strip():
+        with st.spinner('🧠 Analyzing statement...'):
+            cleaned_input = clean_text(user_input)
+            
+            if debug_mode:
                 st.sidebar.write(f"Cleaned text: {cleaned_input}")
-                
-                transformed_input = vectorizer.transform([cleaned_input])
+            
+            transformed_input = vectorizer.transform([cleaned_input])
+            
+            if debug_mode:
                 st.sidebar.write(f"Features shape: {transformed_input.shape}")
                 st.sidebar.write(f"Non-zero features: {transformed_input.nnz}")
-                
-                prediction = model.predict(transformed_input)
-                probabilities = model.predict_proba(transformed_input)[0]
-                
+            
+            prediction = model.predict(transformed_input)
+            probabilities = model.predict_proba(transformed_input)[0]
+            
+            if debug_mode:
                 st.sidebar.write(f"Raw prediction: {prediction}")
                 st.sidebar.write(f"All probabilities: {probabilities}")
 
-            # 🔍 ADD THE NEW DEBUG CODE RIGHT HERE (inside the if block, after with-statement)
-            st.sidebar.write("🔍 PREDICTION DEBUG:")
-            st.sidebar.write(f"Input text: '{user_input}'")
-            st.sidebar.write(f"Cleaned text: '{cleaned_input}'")
-            st.sidebar.write(f"Transformed input shape: {transformed_input.shape}")
-            st.sidebar.write(f"Non-zero features: {transformed_input.nnz}")
+        st.success("### Prediction Results")
 
-            # Check if the transformed input has any features
-            if transformed_input.nnz == 0:
-                st.sidebar.error("❌ NO FEATURES EXTRACTED! The text cleaning might be too aggressive")
-                
-            st.sidebar.write(f"Prediction: {prediction}")
-            st.sidebar.write(f"Probabilities: {probabilities}")
-            st.sidebar.write(f"Max probability: {max(probabilities):.4f}")
-            st.sidebar.write(f"Predicted class index: {np.argmax(probabilities)}")
+        col1, col2 = st.columns([1, 2])
 
-            # Check if all probabilities are the same
-            if len(set(probabilities)) == 1:
-                st.sidebar.error("❌ ALL PROBABILITIES ARE EQUAL! Model might not be working properly")
-
-            st.success("### Prediction Results")
-
-            col1, col2 = st.columns([1, 2])
-
-            with col1:
-                st.metric(label="**Predicted Category**", value=prediction[0])
+        with col1:
+            st.metric(label="**Predicted Category**", value=prediction[0])
+            try:
                 predicted_index = np.where(class_names == prediction[0])[0][0]
                 confidence = probabilities[predicted_index]
                 st.metric(label="**Confidence**", value=f"{confidence:.2%}")
+            except:
+                st.metric(label="**Confidence**", value="N/A")
 
-            with col2:
-                st.subheader("Confidence Breakdown")
-                prob_data = {class_names[i]: float(prob) for i, prob in enumerate(probabilities)}
-                st.bar_chart(prob_data)
+        with col2:
+            st.subheader("Confidence Breakdown")
+            prob_data = {class_names[i]: float(prob) for i, prob in enumerate(probabilities)}
+            st.bar_chart(prob_data)
 
-            with st.expander("See how the text was processed"):
-                st.code(cleaned_input)
-        else:
-            st.warning("⚠️ Please enter some text to analyze.")
+        with st.expander("See how the text was processed"):
+            st.code(cleaned_input)
+    else:
+        st.warning("⚠️ Please enter some text to analyze.")
         
 
 st.markdown("---")

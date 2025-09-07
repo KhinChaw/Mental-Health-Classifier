@@ -4,7 +4,7 @@ A Streamlit web application that classifies mental health conditions based on te
 
 ![Mental Health Classifier](https://img.shields.io/badge/Streamlit-1.28.1-FF4B4B?logo=streamlit)
 ![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?logo=python)
-![Machine Learning](https://img.shields.io/badge/ML-Random%20Forest-0078D7)
+![Machine Learning](https://img.shields.io/badge/ML-Logistic%20Regression-0078D7)
 ![NLP](https://img.shields.io/badge/NLP-TF--IDF-FF6F00)
 
 ## 🌟 Live Demo

@@ -46,11 +46,11 @@ The app processes text using NLP techniques including tokenization, stopword rem
 
 ```
 Mental-Health-Classifier/
-├── app.py
-├── requirements.txt
-├── README.md
-├── .gitignore
-└── models/
+├── app.py                  # Main Streamlit application
+├── requirements.txt        # Python dependencies
+├── README.md               # Project documentation
+├── .gitignore              # Git ignore rules
+└── models/                 # Model files
 ├── best_deployment_model.joblib
 ├── tfidf_vectorizer.joblib
 └── class_names.joblib''

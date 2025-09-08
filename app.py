@@ -33,7 +33,7 @@ def load_assets():
         # Create models directory if it doesn't exist
         os.makedirs("models", exist_ok=True)
         
-        # Google Drive file IDs (replace these with your actual file IDs)
+        # Google Drive file IDs
         model_file_id = "1Th6xAsP1MVXJdpZPOzpnQvR10gk_yK3R"
         vectorizer_file_id = "11M5SlKuEw7eOflL2pXxceZowmgH6uD5C"
         class_names_file_id = "10-sCmZrzSeASQ1KS4MQkVs_rmgfrwiTz"
@@ -104,31 +104,6 @@ if model is None or vectorizer is None or class_names is None:
     
     st.info("ℹ️ Running in demo mode. To use the real model, please check your Google Drive file IDs.")
 
-# Debug toggle
-debug_mode = st.sidebar.checkbox("Show debug information", value=False)
-
-if debug_mode:
-    st.sidebar.write("🛠️ DEBUG INFORMATION")
-    st.sidebar.write(f"Class names type: {type(class_names)}")
-    st.sidebar.write(f"Class names content: {class_names}")
-    st.sidebar.write(f"Number of classes: {len(class_names)}")
-
-    # Check model properties
-    if hasattr(model, 'classes_'):
-        st.sidebar.write(f"Model classes: {model.classes_}")
-        if hasattr(model, 'n_classes_'):
-            st.sidebar.write(f"Model n_classes: {model.n_classes_}")
-    else:
-        st.sidebar.write("Model has no classes_ attribute")
-
-    # Check vectorizer
-    if hasattr(vectorizer, 'get_feature_names_out'):
-        try:
-            features = vectorizer.get_feature_names_out()
-            st.sidebar.write(f"Vectorizer features: {features[:10]}...")
-        except:
-            st.sidebar.write("Could not get vectorizer features")
-
 # Define the text cleaning function
 def clean_text(text):
     if not isinstance(text, str):
@@ -146,78 +121,21 @@ def clean_text(text):
 st.title("🧠 Mental Health Statement Classifier")
 st.markdown("This app predicts the mental health category based on a personal statement. Enter text below and click **Predict**.")
 
-# Initialize session state for text input if it doesn't exist
-if 'user_input' not in st.session_state:
-    st.session_state.user_input = ''
-
-if 'clear_clicked' not in st.session_state:
-    st.session_state.clear_clicked = False
-
-# Create a text area with the session state value
 user_input = st.text_area(
     "**Enter a statement:**",
     height=150,
-    placeholder="e.g., I've been feeling incredibly restless and worried for the past month, can't sleep properly...",
-    key="text_input"
+    placeholder="e.g., I've been feeling incredibly restless and worried for the past month, can't sleep properly..."
 )
 
-# Update session state with the current input
-if user_input != st.session_state.user_input:
-    st.session_state.user_input = user_input
-
-# Create columns for the buttons
-col1, col2, col3 = st.columns([1, 1, 6])
-
-with col1:
-    predict_button = st.button("🚀 Predict", type="primary", use_container_width=True)
-
-with col2:
-    clear_button = st.button("🧹 Clear", use_container_width=True)
-
-# Handle clear button click
-if clear_button:
-    st.session_state.user_input = ''
-    st.session_state.clear_clicked = True
-    # Use st.rerun() to refresh the app and clear the text area
-    st.rerun()
-
-# Reset the clear_clicked flag after the rerun
-if st.session_state.clear_clicked:
-    st.session_state.clear_clicked = False
-    # Set focus back to the text area
-    st.markdown(
-        """
-        <script>
-            // Focus on the text area after clear
-            const textarea = window.parent.document.querySelector('textarea');
-            if (textarea) {
-                textarea.focus();
-            }
-        </script>
-        """,
-        unsafe_allow_html=True
-    )
+predict_button = st.button("🚀 Predict", type="primary")
 
 if predict_button:
-    if st.session_state.user_input.strip():
+    if user_input.strip():
         with st.spinner('🧠 Analyzing statement...'):
-            cleaned_input = clean_text(st.session_state.user_input)
-            
-            if debug_mode:
-                st.sidebar.write(f"Cleaned text: {cleaned_input}")
-            
+            cleaned_input = clean_text(user_input)
             transformed_input = vectorizer.transform([cleaned_input])
-            
-            if debug_mode:
-                st.sidebar.write(f"Features shape: {transformed_input.shape}")
-                st.sidebar.write(f"Non-zero features: {transformed_input.nnz}")
-            
             prediction = model.predict(transformed_input)
             probabilities = model.predict_proba(transformed_input)[0]
-            
-            if debug_mode:
-                st.sidebar.write(f"Raw prediction: {prediction}")
-                st.sidebar.write(f"All probabilities: {probabilities}")
 
         st.success("### Prediction Results")
 

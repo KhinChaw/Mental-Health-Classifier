@@ -24,7 +24,7 @@ This application uses a trained machine learning model to analyze personal state
 - **Stress**
 - **Personality Disorder**
 
-The app processes text using NLP techniques including tokenization, stopword removal, and lemmatization, then uses a TF-IDF vectorizer and Random Forest classifier for prediction.
+The app processes text using NLP techniques including tokenization, stopword removal, and lemmatization, then uses a TF-IDF vectorizer and Logistic Regression classifier for prediction.
 
 ## 🚀 Features
 
